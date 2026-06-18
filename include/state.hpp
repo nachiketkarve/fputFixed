@@ -47,6 +47,8 @@ class State
     // Integrate the equations of motion for one time step using the RK4 integrator
     void rkn4(double deltaT);
 
+    void rkn4Driven(double deltaT, double lmd, double mu, double t);
+
     // Integrate the equations of motion of the state and tangent vectors for one time step using the RK4 integrator
     void rknTangent4(Matrix &qTangent, Matrix &pTangent, double deltaT);
 
@@ -58,6 +60,8 @@ class State
 
     // Evolve the system for time tmax with a timestep of deltaT, possible integrator options: "leapFrog", "rk4", "rk6"
     void Evolve(double tmax, double deltaT, std::string integrator);
+
+    void EvolveDriven(double tmax, double deltaT, double lmd, double mu);
 
     // Evolve the system until it crosses the Poincare section described by its P_seedMode
     double EvolvePoincare(int seedMode, double deltaT, int iterations, double tmax, std::string integrator);
@@ -73,6 +77,8 @@ class State
 
     // Computes the accelaration at each lattice point
     void eom(Vector &ddq, const Vector &Q);
+
+    void eomDriven(Vector &ddq, const Vector &Q, double lmd, double mu, double t);
 
     // Computes the accelaration at each lattice point and tangent vector
     void eomTangent(Vector &ddq, Matrix &ddqTangent, const Vector &Q, const Matrix &QTangent);

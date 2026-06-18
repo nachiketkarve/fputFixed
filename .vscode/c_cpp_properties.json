@@ -5,8 +5,8 @@
             "includePath": [
                 "${default}",
                 "${workspaceFolder}/include",
-                "/mnt/f/Libraries/eigen",
-                "/mnt/f/Libraries/json/include"
+                "${workspaceFolder}/../Libraries/eigen",
+                "${workspaceFolder}/../Libraries/json/include"
             ],
             "defines": [
                 "_DEBUG",
@@ -16,7 +16,8 @@
             "windowsSdkVersion": "10.0.22000.0",
             "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "linux-gcc-x64"
+            "intelliSenseMode": "linux-gcc-x64",
+            "compilerPath": "C:/msys64/ucrt64/bin/g++.exe"
         }
     ],
     "version": 4

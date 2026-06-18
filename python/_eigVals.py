@@ -16,7 +16,7 @@ import matplotlib.animation as ani
 N = 8
 E0 = 1.0
 k0 = 1
-alphaMax = 1
+alphaMax = 0.5
 alpha = 0.01
 deltaAlpha = 0.01
 frames = 500

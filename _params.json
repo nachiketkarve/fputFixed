@@ -1,9 +1,9 @@
 {
-    "saveFolder": "./",
-    "model": "alpha",
+    "saveFolder": "./data/",
+    "model": "beta",
     "deltaT": 0.1,
-    "dataPoints": 1000,
-    "tmax": 1000.0,
+    "dataPoints": 1000000,
+    "tmax": 100000.0,
     "averages": 100,
     "integrator": "rk4"
 }

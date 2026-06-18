@@ -50,13 +50,13 @@ int main(int argc, char *argv[])
 
     if (model == "alpha")
     {
-        FileName = "alphaInit-N" + std::to_string(N) + "-K" + std::to_string(int(k0)) + "-E" + std::to_string(E0) + "-A" + std::to_string(nonLin) + ".csv";
+        FileName = saveFolder + "alphaInit-N" + std::to_string(N) + "-K" + std::to_string(int(k0)) + "-E" + std::to_string(E0) + "-A" + std::to_string(nonLin) + ".csv";
     } else if (model == "toda")
     {
-        FileName = "todaInit-N" + std::to_string(N) + "-K" + std::to_string(int(k0)) + "-E" + std::to_string(E0) + "-A" + std::to_string(nonLin) + ".csv";
+        FileName = saveFolder + "todaInit-N" + std::to_string(N) + "-K" + std::to_string(int(k0)) + "-E" + std::to_string(E0) + "-A" + std::to_string(nonLin) + ".csv";
     } else if (model == "beta")
     {
-        FileName = "betaInit-N" + std::to_string(N) + "-K" + std::to_string(int(k0)) + "-E" + std::to_string(E0) + "-B" + std::to_string(nonLin) + ".csv";
+        FileName = saveFolder + "betaInit-N" + std::to_string(N) + "-K" + std::to_string(int(k0)) + "-E" + std::to_string(E0) + "-B" + std::to_string(nonLin) + ".csv";
     }
 
     std::ofstream file;

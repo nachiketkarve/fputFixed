@@ -51,6 +51,34 @@ void State::eom(Vector &ddq, const Vector &Q)
     }
 }
 
+void State::eomDriven(Vector &ddq, const Vector &Q, double lmd, double mu, double t)
+{
+    ddq.setZero();
+    if (model == "alpha")
+    {
+        for (int i = 1; i <= N; i++)
+        {
+            ddq(i) = Q(i + 1) + Q(i - 1) - 2.0 * Q(i) + nonLin * ((Q(i + 1) - Q(i)) * (Q(i + 1) - Q(i)) - (Q(i) - Q(i - 1)) * (Q(i) - Q(i - 1))) + lmd * ((Q(i + 1) - Q(i)) * (Q(i + 1) - Q(i)) - (Q(i) - Q(i - 1)) * (Q(i) - Q(i - 1))) * std::sin(mu*t) * std::sin(mu*t);
+        }
+    }
+    else if (model == "beta")
+    {
+        for (int i = 1; i <= N; i++)
+        {
+            ddq(i) = Q(i + 1) + Q(i - 1) - 2.0 * Q(i) + nonLin * ((Q(i + 1) - Q(i)) * (Q(i + 1) - Q(i)) * (Q(i + 1) - Q(i)) - (Q(i) - Q(i - 1)) * (Q(i) - Q(i - 1)) * (Q(i) - Q(i - 1)))+ lmd * ((Q(i + 1) - Q(i)) * (Q(i + 1) - Q(i)) * (Q(i + 1) - Q(i)) - (Q(i) - Q(i - 1)) * (Q(i) - Q(i - 1)) * (Q(i) - Q(i - 1))) * std::sin(mu*t) * std::sin(mu*t);
+        }
+    }
+    else if (model == "toda")
+    {
+        double V0 = 1/(4.0*nonLin*nonLin);
+        double lmd0 = 2.0*nonLin;
+        for (int i = 1; i <= N; i++)
+        {
+            ddq(i) = V0*lmd0*std::exp(lmd0*(Q(i+1)-Q(i))) - V0*lmd0*std::exp(lmd0*(Q(i)-Q(i-1)))  + lmd * ((Q(i + 1) - Q(i)) * (Q(i + 1) - Q(i)) - (Q(i) - Q(i - 1)) * (Q(i) - Q(i - 1))) * std::sin(mu*t) * std::sin(mu*t);
+        }
+    }
+}
+
 // Computes the acceleration at each site on the lattice and of the tangent vectors
 void State::eomTangent(Vector &ddq, Matrix &ddqTangent, const Vector &Q, const Matrix &QTangent)
 {
@@ -264,6 +292,37 @@ void State::rkn4(double deltaT)
     q = q + deltaT * pPrev + pow(deltaT, 2) * B1 * EOM1 + pow(deltaT, 2) * B2 * EOM2 + pow(deltaT, 2) * B3 * EOM3 + pow(deltaT, 2) * B4 * EOM4 + pow(deltaT, 2) * B5 * EOM5;
 };
 
+void State::rkn4Driven(double deltaT, double lmd, double mu, double t)
+{
+    Vector pPrev(N + 2);
+    Vector EOM1(N + 2);
+    Vector EOM2(N + 2);
+    Vector EOM3(N + 2);
+    Vector EOM4(N + 2);
+    Vector EOM5(N + 2);
+
+    Vector Q1(N + 2);
+    Vector Q2(N + 2);
+    Vector Q3(N + 2);
+    Vector Q4(N + 2);
+    Vector Q5(N + 2);
+
+    Q1 = q + deltaT * g1 * p;
+    eomDriven(EOM1, Q1, lmd, mu, t + g1*deltaT);
+    Q2 = q + deltaT * g2 * p + pow(deltaT, 2) * a21 * EOM1;
+    eomDriven(EOM2, Q2, lmd, mu, t + g2*deltaT);
+    Q3 = q + deltaT * g3 * p + pow(deltaT, 2) * a31 * EOM1 + pow(deltaT, 2) * a32 * EOM2;
+    eomDriven(EOM3, Q3, lmd, mu, t + g3*deltaT);
+    Q4 = q + deltaT * g4 * p + pow(deltaT, 2) * a41 * EOM1 + pow(deltaT, 2) * a42 * EOM2 + pow(deltaT, 2) * a43 * EOM3;
+    eomDriven(EOM4, Q4, lmd, mu, t + g4*deltaT);
+    Q5 = q + deltaT * g5 * p + pow(deltaT, 2) * a51 * EOM1 + pow(deltaT, 2) * a52 * EOM2 + pow(deltaT, 2) * a53 * EOM3 + pow(deltaT, 2) * a54 * EOM4;
+    eomDriven(EOM5, Q5, lmd, mu, t + g5*deltaT);
+
+    pPrev = p;
+    p = p + deltaT * b1 * EOM1 + +deltaT * b2 * EOM2 + deltaT * b3 * EOM3 + deltaT * b4 * EOM4 + deltaT * b5 * EOM5;
+    q = q + deltaT * pPrev + pow(deltaT, 2) * B1 * EOM1 + pow(deltaT, 2) * B2 * EOM2 + pow(deltaT, 2) * B3 * EOM3 + pow(deltaT, 2) * B4 * EOM4 + pow(deltaT, 2) * B5 * EOM5;
+};
+
 // Integrates the equations of motion of the lattice and tangent vectors for one time step using RK4
 void State::rknTangent4(Matrix &qTangent, Matrix &pTangent, double deltaT)
 {
@@ -454,6 +513,14 @@ void State::Evolve(double tmax, double deltaT, std::string integrator = "rk4")
     }
 };
 
+void State::EvolveDriven(double tmax, double deltaT, double lmd, double mu)
+{
+    for (int i = 0; i < int(tmax / deltaT); i++)
+    {
+        rkn4Driven(deltaT, lmd, mu, i * deltaT);
+    }
+};
+
 // Evolve the system until it crosses the Poincare section described by the normal mode momentum of the seed mode
 double State::EvolvePoincare(int seedMode, double deltaT, int iterations = 1, double tmax = 1000.0, std::string integrator = "rk4")
 {
@@ -492,6 +559,20 @@ double State::EvolvePoincare(int seedMode, double deltaT, int iterations = 1, do
         if (i > 1 && sgn(QSeedMode) == sgn(QSeedModeInit) && sgn(PSeedMode - PSeedModeInit) != sgn(PSeedModePrev - PSeedModeInit))
         {
             count = count + 1;
+            /*
+            double tBack = -(PSeedMode - PSeedModeInit)/(PSeedMode - PSeedModePrev)*deltaT;
+            period = period + tBack;
+            if (integrator == "leapFrog")
+            {
+                leapFrog(tBack);
+            } else if (integrator == "rk6")
+            {
+                rkn6(tBack);
+            } else 
+            {
+                rkn4(tBack);
+            }
+            */
         }
         if (count >= iterations)
         {
@@ -546,6 +627,20 @@ double State::EvolveTangentPoincare(Matrix &qTangent, Matrix &pTangent, int seed
         if (i > 1 && sgn(QSeedMode) == sgn(QSeedModeInit) && sgn(PSeedMode - PSeedModeInit) != sgn(PSeedModePrev - PSeedModeInit))
         {
             count = count + 1;
+            /*
+            double tBack = -(PSeedMode - PSeedModeInit)/(PSeedMode - PSeedModePrev)*deltaT;
+            period = period + tBack;
+            if (integrator == "leapFrog")
+            {
+                leapFrog(tBack);
+            } else if (integrator == "rk6")
+            {
+                rkn6(tBack);
+            } else 
+            {
+                rkn4(tBack);
+            }
+            */
         }
         if (count >= iterations)
         {
@@ -569,13 +664,15 @@ void State::initializeNormalMode(double Energy, int mode)
     }
 
     Vector Q(N+2);
+    Vector P(N+2);
     Q.setZero();
+    P.setZero();
     if (model == "alpha" || model == "toda")
     {
-        modeAmplitudeAlpha(Q,mode,Energy,nonLin);
+        modeAmplitudeAlpha(Q,P,mode,Energy,nonLin);
     } else if (model == "beta")
     {
-        modeAmplitudeBeta(Q,mode,Energy,nonLin);
+        modeAmplitudeBeta(Q,P,mode,Energy,nonLin);
     }
 
     p.setZero();

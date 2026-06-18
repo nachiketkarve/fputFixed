@@ -17,7 +17,8 @@ N = 8
 E0 = 1.0
 k0 = 1
 
-betas = np.array([0.1, 2, 6, 10])
+#betas = np.array([0.1, 2, 6, 10])
+betas = np.array([3])
 
 fig = plt.figure()
 
@@ -32,3 +33,6 @@ for beta in betas:
         
     except FileNotFoundError:
         continue
+
+
+plt.show()
