@@ -1,0 +1,4 @@
+# Ignore generated or large data files
+# Keep data files local and out of version control
+
+data/
